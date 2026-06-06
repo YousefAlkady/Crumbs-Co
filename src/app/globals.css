@@ -10,6 +10,12 @@ body {
   color: var(--foreground);
 }
 
+/* Prevent horizontal overflow on mobile */
+html, body {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Custom Animations for your Marquee and Glowing Shadows */
 @layer utilities {
   .animate-blob {
@@ -51,4 +57,25 @@ body {
   100% {
     transform: translateX(-50%);
   }
+}
+
+/* Menu watermark - faded logo background */
+.menu-watermark {
+  position: relative;
+}
+.menu-watermark::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/Crumbs and Co Logo png.png');
+  background-repeat: repeat;
+  background-size: 15rem;
+  filter: grayscale(100%);
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+.menu-watermark > * {
+  position: relative;
+  z-index: 1;
 }

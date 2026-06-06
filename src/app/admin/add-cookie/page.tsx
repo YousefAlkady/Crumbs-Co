@@ -5,20 +5,24 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { ArrowLeft, UploadCloud, X, Loader2 } from "lucide-react";
 import Link from "next/link";
+import ImageCropModal from "@/components/ui/ImageCropModal";
 
 export default function AddCookiePage() {
     const router = useRouter();
 
-    // THE BOUNCER
+    // THE BOUNCER - use onAuthStateChange so we wait for Supabase to restore session from storage
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            const allowedAdmins = ['yoyoalk@gmail.com', 'crumbsncobylana@gmail.com'];
-            if (!session || !allowedAdmins.includes(session.user.email || '')) {
-                supabase.auth.signOut();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event !== 'INITIAL_SESSION') return;
+            const allowedAdmins = ['crumbncobylana@gmail.com', 'yoyoalk@gmail.com'];
+            const email = (session?.user?.email || '').toLowerCase();
+            if (!session || !allowedAdmins.includes(email)) {
+                await supabase.auth.signOut({ scope: 'local' });
                 router.push("/login");
             }
         });
-    }, [router]);
+        return () => subscription.unsubscribe();
+    }, []);
 
     // Text Inputs
     const [name, setName] = useState("");
@@ -26,18 +30,35 @@ export default function AddCookiePage() {
     const [price, setPrice] = useState("");
 
     // Image Upload State
-    const [files, setFiles] = useState<File[]>([]);
+    const [files, setFiles] = useState<Blob[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
     const [uploading, setUploading] = useState(false);
+    const [cropQueue, setCropQueue] = useState<string[]>([]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const selectedFiles = Array.from(e.target.files);
-            setFiles((prev) => [...prev, ...selectedFiles]);
+        if (!e.target.files?.length) return;
+        const selectedFiles = Array.from(e.target.files);
+        const urls = selectedFiles.map(f => URL.createObjectURL(f));
+        setCropQueue((prev) => [...prev, ...urls]);
+        e.target.value = "";
+    };
 
-            const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
-            setPreviews((prev) => [...prev, ...newPreviews]);
-        }
+    const handleCropComplete = (blob: Blob) => {
+        const url = URL.createObjectURL(blob);
+        setFiles((prev) => [...prev, blob]);
+        setPreviews((prev) => [...prev, url]);
+        setCropQueue((prev) => {
+            if (prev[0]) URL.revokeObjectURL(prev[0]);
+            return prev.slice(1);
+        });
+    };
+
+    const handleCropCancel = () => {
+        setCropQueue((prev) => {
+            const next = prev.slice(1);
+            if (prev[0]) URL.revokeObjectURL(prev[0]);
+            return next;
+        });
     };
 
     const removeImage = (index: number) => {
@@ -47,17 +68,20 @@ export default function AddCookiePage() {
 
     const handleCreateProduct = async (e: React.FormEvent) => {
         e.preventDefault();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) throw new Error("Unauthorized request");
         if (files.length === 0) return alert("Please select at least one image!");
         setUploading(true);
 
         try {
             const uploadedUrls: string[] = [];
 
-            for (const file of files) {
-                const fileName = `${Date.now()}_${file.name}`;
+            for (let i = 0; i < files.length; i++) {
+                const blob = files[i];
+                const fileName = `${Date.now()}_${i}.jpg`;
                 const { error: uploadError } = await supabase.storage
                     .from('cookie-images')
-                    .upload(fileName, file);
+                    .upload(fileName, blob);
 
                 if (uploadError) throw uploadError;
 
@@ -116,9 +140,17 @@ export default function AddCookiePage() {
                     </div>
                 </div>
 
+                {cropQueue.length > 0 && (
+                    <ImageCropModal
+                        imageSrc={cropQueue[0]}
+                        onComplete={handleCropComplete}
+                        onCancel={handleCropCancel}
+                    />
+                )}
+
                 <div className="mb-10 p-6 bg-[#FDF6E3]/30 rounded-2xl border-2 border-dashed border-[#5C3317]/10">
                     <label className="block text-sm font-black uppercase tracking-widest text-[#5C3317]/50 mb-4">
-                        Cookie Gallery <span className="text-[#ffc0cb] font-bold lowercase">(First image is the cover)</span>
+                        Cookie Gallery <span className="text-[#ffc0cb] font-bold lowercase">(Crop to 4:3 — matches menu card)</span>
                     </label>
 
                     <div className="flex flex-wrap gap-4">

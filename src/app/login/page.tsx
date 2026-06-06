@@ -20,9 +20,8 @@ export default function AdminLoginPage() {
         setError(null);
 
         try {
-            // 1. Check if it's an allowed admin email
-            const allowedAdmins = ["yoyoalk@gmail.com", "crumbsncobylana@gmail.com"];
-            if (!allowedAdmins.includes(email.toLowerCase())) {
+            const allowedAdmins = ["crumbncobylana@gmail.com", "yoyoalk@gmail.com"];
+            if (!allowedAdmins.includes((email || "").toLowerCase())) {
                 throw new Error("Unauthorized access. This portal is for the Bakery Admin only.");
             }
 
@@ -41,7 +40,7 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-[#FDF6E3] relative overflow-hidden text-[#5C3317] font-sans p-4">
+        <div className="min-h-screen w-full flex items-center justify-center bg-[#FDF6E3] relative overflow-x-hidden text-[#5C3317] font-sans p-3 sm:p-4">
 
             {/* Background Glow */}
             <div className="fixed inset-0 pointer-events-none z-0">
@@ -49,7 +48,7 @@ export default function AdminLoginPage() {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#00008B] opacity-10 blur-[120px]" />
             </div>
 
-            <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-[#00008B] font-bold tracking-widest uppercase hover:text-[#ffc0cb] transition-colors z-20 text-sm">
+            <Link href="/" className="absolute top-16 sm:top-8 left-3 sm:left-8 flex items-center gap-2 text-[#00008B] font-bold tracking-widest uppercase hover:text-[#ffc0cb] transition-colors z-20 text-sm min-h-[44px] items-center">
                 <ArrowLeft className="w-4 h-4" /> Back to Home
             </Link>
 

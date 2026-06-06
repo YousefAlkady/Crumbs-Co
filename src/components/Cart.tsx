@@ -4,9 +4,16 @@ import { useCart } from "@/context/CartContext";
 import { X, ShoppingBag, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+const MOQ = 2;
+const DELIVERY_FEE = 50;
+
 export default function Cart() {
   const { items, removeFromCart, total, isCartOpen, setIsCartOpen } = useCart();
   const router = useRouter();
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const belowMoq = totalItems < MOQ;
+  const subtotal = total;
+  const finalTotal = subtotal + DELIVERY_FEE;
 
   if (!isCartOpen) return null;
 
@@ -23,7 +30,7 @@ export default function Cart() {
           <h2 className="text-2xl font-black tracking-tighter flex items-center gap-2">
             <ShoppingBag /> YOUR CART
           </h2>
-          <button onClick={() => setIsCartOpen(false)} className="hover:text-white transition-colors">
+          <button onClick={() => setIsCartOpen(false)} className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 -m-2 hover:text-white transition-colors">
             <X size={28} />
           </button>
         </div>
@@ -45,7 +52,7 @@ export default function Cart() {
                 </div>
                 <button
                   onClick={() => removeFromCart(item.id)}
-                  className="text-red-400 hover:text-red-600 hover:bg-red-50 p-3 rounded-xl transition-colors"
+                  className="text-red-400 hover:text-red-600 hover:bg-red-50 min-h-[44px] min-w-[44px] flex items-center justify-center p-3 rounded-xl transition-colors shrink-0"
                 >
                   <Trash2 size={20} />
                 </button>
@@ -55,16 +62,31 @@ export default function Cart() {
         </div>
 
         <div className="p-4 md:p-6 bg-white border-t-2 border-[#5C3317]/10">
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-[#5C3317] font-bold text-lg">TOTAL</span>
-            <span className="text-3xl font-black text-[#00008B]">{total} EGP</span>
+          {belowMoq && items.length > 0 && (
+            <p className="mb-4 px-4 py-3 rounded-xl bg-amber-100 border-2 border-amber-500 text-amber-800 font-bold text-center">
+              A minimum of 2 cookies is required per order.
+            </p>
+          )}
+          <div className="space-y-2 mb-6">
+            <div className="flex justify-between items-center">
+              <span className="text-[#5C3317] font-bold">Subtotal</span>
+              <span className="font-black text-[#00008B]">{subtotal} EGP</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[#5C3317] font-bold">Delivery</span>
+              <span className="font-black text-amber-600">+ {DELIVERY_FEE} EGP</span>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-[#5C3317]/10">
+              <span className="text-[#5C3317] font-black text-lg">Final Total</span>
+              <span className="text-2xl font-black text-[#00008B]">{finalTotal} EGP</span>
+            </div>
           </div>
           <button
             onClick={() => {
               setIsCartOpen(false);
               router.push('/checkout');
             }}
-            disabled={items.length === 0}
+            disabled={items.length === 0 || belowMoq}
             className="w-full py-4 bg-[#ffc0cb] text-[#00008B] font-black tracking-widest text-lg rounded-xl hover:bg-[#00008B] hover:text-[#ffc0cb] transition-colors disabled:opacity-50 shadow-lg"
           >
             SECURE CHECKOUT

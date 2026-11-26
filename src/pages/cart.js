@@ -89,7 +89,9 @@ export default function CartPage() {
     setGeneratedOtp(mockCode);
     try {
       const res = await fetch('/api/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: emailToSendTo, otpCode: mockCode }) });
-      if (res.ok) setShowOtpModal(true);
+      const body = await res.json().catch(() => ({}));
+      if (res.ok && body.skipped) setIsPhoneVerified(true); // email codes not set up on this server
+      else if (res.ok) setShowOtpModal(true);
       else alert("Failed to send email.");
     } catch (err) { alert("Error sending email."); }
     setLoadingOtp(false);

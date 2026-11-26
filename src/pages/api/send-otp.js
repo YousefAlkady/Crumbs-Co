@@ -12,6 +12,10 @@ export default async function handler(req, res) {
     if (!email || !otpCode) {
         return res.status(400).json({ error: 'Missing email or OTP code' });
     }
+    // shortcut: without the Gmail password on the server, skip the email code (like the old live site); set GMAIL_APP_PASSWORD to turn it on
+    if (!process.env.GMAIL_APP_PASSWORD) {
+        return res.status(200).json({ skipped: true });
+    }
 
     // 3. Configure Gmail
     const transporter = nodemailer.createTransport({

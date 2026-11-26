@@ -168,6 +168,29 @@ export default function AdminDashboardPage() {
     const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
     const [editingProductId, setEditingProductId] = useState<number | null>(null);
 
+    // Kept in this browser only (localStorage); the database is not changed by these.
+    // "accepted": the DB keeps 'pending' until Complete. "hidden": cleared from the screen, never deleted.
+    const [accepted, setAccepted] = useState<string[]>([]);
+    const [hidden, setHidden] = useState<string[]>([]);
+    const [armedClear, setArmedClear] = useState<"completed" | "canceled" | null>(null);
+    useEffect(() => {
+        try {
+            setAccepted(JSON.parse(localStorage.getItem("admin-accepted-orders") || "[]"));
+            setHidden(JSON.parse(localStorage.getItem("admin-hidden-orders") || "[]"));
+        } catch {}
+    }, []);
+    useEffect(() => {
+        if (!armedClear) return;
+        const t = setTimeout(() => setArmedClear(null), 4000);
+        return () => clearTimeout(t);
+    }, [armedClear]);
+    const acceptOrder = (order: Order, e: React.MouseEvent) => {
+        e.stopPropagation();
+        const next = [...new Set([...accepted, String(order.id)])];
+        localStorage.setItem("admin-accepted-orders", JSON.stringify(next));
+        setAccepted(next);
+    };
+
     // THE BOUNCER - use onAuthStateChange so we wait for Supabase to restore session from storage
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -237,20 +260,18 @@ export default function AdminDashboardPage() {
         fetchCookies();
     };
 
-    const clearCompletedOrders = async () => {
-        const confirmed = window.confirm(
-            "Are you sure you want to permanently delete all completed orders? This cannot be undone."
-        );
-        if (!confirmed) return;
-        const { error } = await supabase.from("orders").delete().eq("status", "completed");
-        if (error) {
-            toast.error(`Failed: ${error.message}`);
-            return;
-        }
-        fetchOrders();
+    // first tap arms the button, second tap hides those orders on this device (nothing is deleted)
+    const clearFromScreen = (status: "completed" | "canceled") => {
+        if (armedClear !== status) { setArmedClear(status); return; }
+        const ids = orders.filter(o => (o.status || '').toLowerCase() === status).map(o => String(o.id));
+        const next = [...new Set([...hidden, ...ids])];
+        localStorage.setItem("admin-hidden-orders", JSON.stringify(next));
+        setHidden(next);
+        setArmedClear(null);
         setExpandedOrderId(null);
-        toast.success("Completed orders cleared.");
+        toast.success(`${status === "completed" ? "Completed" : "Canceled"} orders cleared from this screen.`);
     };
+    const clearCompletedOrders = () => clearFromScreen("completed");
 
     const markOrderCompleted = async (order: Order, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -293,20 +314,7 @@ export default function AdminDashboardPage() {
         toast.success("Order canceled.");
     };
 
-    const clearCanceledOrders = async () => {
-        const confirmed = window.confirm(
-            "Permanently delete all canceled orders? This cannot be undone."
-        );
-        if (!confirmed) return;
-        const { error } = await supabase.from("orders").delete().eq("status", "canceled");
-        if (error) {
-            toast.error(`Failed: ${error.message}`);
-            return;
-        }
-        fetchOrders();
-        setExpandedOrderId(null);
-        toast.success("Canceled orders cleared.");
-    };
+    const clearCanceledOrders = () => clearFromScreen("canceled");
 
     const getTimeElapsed = (createdAt: string) => {
         const then = new Date(createdAt).getTime();
@@ -321,8 +329,8 @@ export default function AdminDashboardPage() {
     };
 
     const pendingOrders = useMemo(() => orders.filter(o => (o.status || '').toLowerCase() === 'pending'), [orders]);
-    const completedOrders = useMemo(() => orders.filter(o => (o.status || '').toLowerCase() === 'completed'), [orders]);
-    const canceledOrders = useMemo(() => orders.filter(o => (o.status || '').toLowerCase() === 'canceled'), [orders]);
+    const completedOrders = useMemo(() => orders.filter(o => (o.status || '').toLowerCase() === 'completed' && !hidden.includes(String(o.id))), [orders, hidden]);
+    const canceledOrders = useMemo(() => orders.filter(o => (o.status || '').toLowerCase() === 'canceled' && !hidden.includes(String(o.id))), [orders, hidden]);
 
     const newOrdersCount = pendingOrders.length;
     const completedOrdersCount = completedOrders.length;
@@ -480,7 +488,7 @@ export default function AdminDashboardPage() {
                                 onClick={clearCompletedOrders}
                                 className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold uppercase tracking-wider bg-red-600 text-white hover:bg-red-700 transition-colors ml-auto"
                             >
-                                <Trash2 size={18} /> Clear All Completed Orders
+                                <Trash2 size={18} /> {armedClear === "completed" ? `Tap again to clear ${completedOrdersCount}` : "Clear All Completed Orders"}
                             </button>
                         )}
                         {canceledOrdersCount > 0 && orderSubTab === "canceled" && (
@@ -488,7 +496,7 @@ export default function AdminDashboardPage() {
                                 onClick={clearCanceledOrders}
                                 className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold uppercase tracking-wider bg-red-600 text-white hover:bg-red-700 transition-colors ml-auto"
                             >
-                                <Trash2 size={18} /> Clear All Canceled Orders
+                                <Trash2 size={18} /> {armedClear === "canceled" ? `Tap again to clear ${canceledOrdersCount}` : "Clear All Canceled Orders"}
                             </button>
                         )}
                     </div>
@@ -538,7 +546,7 @@ export default function AdminDashboardPage() {
                                                 <span className="px-2 py-0.5 rounded-lg bg-green-100 text-green-700 font-bold text-xs uppercase">Completed</span>
                                             )}
                                             {(order.status || '').toLowerCase() === 'pending' && (
-                                                <span className="px-2 py-0.5 rounded-lg bg-[#ffc0cb]/30 text-[#00008B] font-bold text-xs uppercase">Pending</span>
+                                                <span className="px-2 py-0.5 rounded-lg bg-[#ffc0cb]/30 text-[#00008B] font-bold text-xs uppercase">{accepted.includes(String(order.id)) ? "Accepted" : "Pending"}</span>
                                             )}
                                             {(order.status || '').toLowerCase() === 'canceled' && (
                                                 <span className="px-2 py-0.5 rounded-lg bg-red-100 text-red-700 font-bold text-xs uppercase">Canceled</span>
@@ -547,12 +555,21 @@ export default function AdminDashboardPage() {
                                         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                                             {(order.status || '').toLowerCase() === 'pending' && (
                                                 <>
-                                                    <button
-                                                        onClick={(e) => markOrderCompleted(order, e)}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition-colors uppercase text-sm"
-                                                    >
-                                                        <CheckCircle2 size={18} /> Mark as Completed
-                                                    </button>
+                                                    {accepted.includes(String(order.id)) ? (
+                                                        <button
+                                                            onClick={(e) => markOrderCompleted(order, e)}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition-colors uppercase text-sm"
+                                                        >
+                                                            <CheckCircle2 size={18} /> Complete Order
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={(e) => acceptOrder(order, e)}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-[#00008B] text-white font-black rounded-xl hover:bg-[#ffc0cb] hover:text-[#00008B] transition-colors uppercase text-sm"
+                                                        >
+                                                            <CheckCircle2 size={18} /> Accept Order
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={(e) => markOrderCanceled(order, e)}
                                                         className="flex items-center gap-2 px-4 py-2 border-2 border-red-500 text-red-600 font-black rounded-xl hover:bg-red-50 transition-colors uppercase text-sm"

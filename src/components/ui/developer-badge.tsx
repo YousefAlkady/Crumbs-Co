@@ -160,7 +160,7 @@ export const DeveloperBadge = () => {
   return (
     <a
       ref={ref}
-      href="https://github.com/YousefAlkady"
+      href="https://yousef.unilinkcampus.com"
       target="_blank"
       rel="noopener noreferrer"
       className="block w-[200px] h-auto cursor-pointer"

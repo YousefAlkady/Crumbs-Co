@@ -13,6 +13,18 @@ export default function AdminLoginPage() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [notice, setNotice] = useState<string | null>(null);
+
+    // Supabase emails a one-time link to /reset-password; existing passwords keep working until a reset is asked for
+    const handleForgot = async () => {
+        setError(null); setNotice(null);
+        if (!email.includes("@")) { setError('Type your admin email first, then tap "Forgot password?".'); return; }
+        setLoading(true);
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+        setLoading(false);
+        if (resetError) setError(resetError.message);
+        else setNotice(`If ${email} is an admin account, a reset link is on its way.`);
+    };
 
     const handleAdminLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -65,6 +77,12 @@ export default function AdminLoginPage() {
                     Authorized bakery personnel only.
                 </p>
 
+                {notice && (
+                    <div className="w-full p-4 mb-6 text-sm font-bold text-[#00008B] bg-[#ffc0cb] rounded-xl text-center" role="status">
+                        {notice}
+                    </div>
+                )}
+
                 {error && (
                     <div className="w-full p-4 mb-6 text-sm font-bold text-red-100 bg-red-500/20 border-2 border-red-500 rounded-xl text-center">
                         {error}
@@ -105,6 +123,10 @@ export default function AdminLoginPage() {
                         className="w-full bg-[#ffc0cb] text-[#00008B] font-black tracking-widest uppercase py-4 rounded-xl shadow-lg hover:bg-[#FDF6E3] transition-colors mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'AUTHORIZE'}
+                    </button>
+                    <button type="button" onClick={handleForgot} disabled={loading}
+                        className="text-sm font-bold uppercase tracking-widest text-[#ffc0cb] hover:text-[#FDF6E3] transition-colors underline underline-offset-4 disabled:opacity-50">
+                        Forgot password?
                     </button>
                 </form>
             </div>

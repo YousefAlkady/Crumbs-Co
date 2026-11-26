@@ -31,14 +31,15 @@ export default function Motion() {
           scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true, invalidateOnRefresh: true },
         });
       });
+      // already on screen at load: play now; further down: wait until scrolled into view
+      const enter = (el, start) => (el.getBoundingClientRect().top < innerHeight * 0.9
+        ? { delay: 0.1 } : { scrollTrigger: { trigger: el, start, once: true } });
       gsap.utils.toArray('[data-reveal]').forEach((el) => {
         const items = el.dataset.reveal === 'stagger' ? el.children : el;
-        gsap.from(items, { y: 40, opacity: 0, duration: 0.9, ease: 'power3.out', stagger: 0.09,
-          scrollTrigger: { trigger: el, start: 'top 85%', once: true } });
+        gsap.from(items, { y: 40, opacity: 0, duration: 0.9, ease: 'power3.out', stagger: 0.09, ...enter(el, 'top 85%') });
       });
       gsap.utils.toArray('[data-lines]').forEach((el) => {
-        gsap.from(el.querySelectorAll('.ln'), { yPercent: 110, duration: 1, ease: 'power4.out', stagger: 0.08,
-          scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
+        gsap.from(el.querySelectorAll('.ln'), { yPercent: 110, duration: 1, ease: 'power4.out', stagger: 0.08, ...enter(el, 'top 88%') });
       });
     });
     const id = setTimeout(() => ScrollTrigger.refresh(), 300); // after page pins have set up

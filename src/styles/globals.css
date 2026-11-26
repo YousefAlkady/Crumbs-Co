@@ -1,111 +1,109 @@
 @import "tailwindcss";
 
-/* ─── Crumb & Co. design tokens (Tailwind v4 reads these; the old tailwind.config.js was never loaded) ─── */
+/* ─── Crumb & Co. Design System (original look) ───────────────────────────
+   The colors/fonts below come from the original tailwind.config.js, which Tailwind v4 never loaded,
+   so classes like bg-cream / border-chocolate / shadow-sticker silently did nothing. @theme makes them real. */
 @theme {
-  --color-cream: #FFF6EC;
-  --color-blush: #FFD3E2;
-  --color-pink: #FF5FA2;        /* logo pink: large text and fills only */
-  --color-pink-deep: #C8236B;   /* pink for small text (AA on cream) */
-  --color-cocoa: #4A1E1B;
-  --color-cobalt: #2F3BF5;
-  --color-ink: #161011;
-
-  /* old class names used across the pages, mapped onto the new palette */
-  --color-chocolate: #4A1E1B;
-  --color-pastel-pink: #FFD3E2;
-  --color-pastel-hotpink: #FF5FA2;
-  --color-pastel-peach: #FFE9DD;
-  --color-mint: #CDEBDD;
-  --color-mint-dark: #2E8A63;
+  --color-cream: #FFF8E7;            /* Vanilla cream */
+  --color-chocolate: #4A2C2A;        /* Chocolate brown */
+  --color-chocolate-light: #6B4442;
+  --color-chocolate-dark: #3C2A21;
+  --color-pastel-pink: #FFC0CB;
+  --color-pastel-hotpink: #FF69B4;
+  --color-pastel-peach: #FFE4D6;
+  --color-mint: #B8E6D5;             /* Mint green accent */
+  --color-mint-dark: #7EC4A8;
   --color-cookie: #E8D5B7;
 
-  --font-display: var(--f-display), "Arial Black", sans-serif;
-  --font-script: var(--f-script), Georgia, serif;
-  --font-body: var(--f-body), system-ui, sans-serif;
-  --font-chewy: var(--f-display), "Arial Black", sans-serif;
-  --font-fredoka: var(--f-body), system-ui, sans-serif;
+  /* names used by the admin, cart summary and footer, mapped onto the same palette */
+  --color-cocoa: #4A2C2A;
+  --color-blush: #FFC0CB;
+  --color-pink: #FF69B4;
+  --color-pink-deep: #C2185B;        /* hot pink dark enough for small text */
+  --color-cobalt: #3B5BDB;
+  --color-ink: #3C2A21;
 
-  --shadow-sticker: 3px 3px 0 0 #4A1E1B;
-  --shadow-sticker-hover: 5px 5px 0 0 #4A1E1B;
-  --shadow-sticker-pressed: 0 0 0 0 #4A1E1B;
-  --shadow-soft: 0 18px 40px -18px rgba(74, 30, 27, 0.35);
+  --font-chewy: var(--f-chewy), cursive;
+  --font-fredoka: var(--f-fredoka), sans-serif;
+  --font-display: var(--f-chewy), cursive;
+  --font-script: var(--f-chewy), cursive;
+  --font-body: var(--f-fredoka), sans-serif;
+
+  /* Sticker shadow (hard drop) */
+  --shadow-sticker: 4px 4px 0px 0px rgba(60, 42, 33, 1);
+  --shadow-sticker-hover: 6px 6px 0px 0px rgba(60, 42, 33, 1);
+  --shadow-sticker-pressed: 0px 0px 0px 0px rgba(60, 42, 33, 1);
+  --shadow-soft: 0 18px 40px -18px rgba(60, 42, 33, 0.35);
+
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
 }
 
 @layer base {
-/* ─── base ─── */
-html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
-html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-body { font-family: var(--font-body); color: var(--color-cocoa); background: var(--color-cream); overflow-x: clip; }
-h1, h2, h3, h4 { font-family: var(--font-display); color: inherit; letter-spacing: -0.02em; }
-a { color: inherit; text-decoration: none; }
-:focus-visible { outline: 3px solid var(--color-cobalt); outline-offset: 3px; border-radius: 6px; }
-::selection { background: var(--color-pink); color: #fff; }
-
+  :root {
+    --background: #FFF8E7;
+    --foreground: #4A2C2A;
+    --pastel-pink: #FFC0CB;
+    --pastel-hotpink: #FF69B4;
+    --pastel-peach: #FFE4D6;
+    --mint: #B8E6D5;
+    --mint-dark: #7EC4A8;
+    --white: #FFFFFF;
+  }
+  /* Base typography: Chewy for headings, Fredoka for body/UI */
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-chewy); color: var(--foreground); }
+  body { font-family: var(--font-fredoka); color: var(--foreground); background: var(--background); }
+  /* clip, not hidden: hidden turns body into a scroll box and breaks sticky elements + smooth scroll */
+  html, body { max-width: 100vw; overflow-x: clip; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  a { color: inherit; text-decoration: none; }
 }
 
 @layer components {
-/* ─── type helpers ─── */
-.disp { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: -0.035em; line-height: 0.86; }
-.script { font-family: var(--font-script); font-weight: 400; letter-spacing: 0; text-transform: none; }
-.kicker { font: 600 12px/1.2 var(--font-body); letter-spacing: 0.22em; text-transform: uppercase; }
-.mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
-.mask > .ln { display: block; will-change: transform; }
+  /* ─── Sticker UI utilities ─── */
+  .btn-sticker {
+    font-family: var(--font-fredoka); font-weight: 500; border: 4px solid var(--foreground); border-radius: 9999px;
+    box-shadow: 4px 4px 0px 0px rgba(60, 42, 33, 1); transition: transform 0.1s ease, box-shadow 0.1s ease; cursor: pointer;
+  }
+  .btn-sticker:hover { box-shadow: 6px 6px 0px 0px rgba(60, 42, 33, 1); }
+  .btn-sticker:active, .btn-sticker.pressed { transform: translate(4px, 4px); box-shadow: 0px 0px 0px 0px rgba(60, 42, 33, 1); }
 
-/* weight sweep: each letter's weight rides a wave (needs the variable display font) */
-.sweep i { font-style: normal; display: inline-block; animation: sweep 3.2s ease-in-out 3; /* a few waves, not forever: animating font-weight re-lays out text every frame */ animation-delay: calc(var(--i) * -0.12s); }
-@keyframes sweep { 0%, 100% { font-weight: 800; } 50% { font-weight: 380; } }
+  .input-sticker {
+    font-family: var(--font-fredoka); width: 100%; padding: 14px 18px; border: 4px solid var(--foreground); border-radius: 1rem;
+    background: var(--background); color: var(--foreground); font-size: 1rem; outline: none;
+    box-shadow: 4px 4px 0px 0px rgba(60, 42, 33, 1); transition: box-shadow 0.15s ease, transform 0.1s ease;
+  }
+  .input-sticker:focus { box-shadow: 6px 6px 0px 0px rgba(60, 42, 33, 1); }
 
-/* ─── buttons, inputs, cards (pages reuse these) ─── */
-.btn-pill { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 999px; padding: 16px 28px;
-  font: 600 15px/1 var(--font-body); letter-spacing: 0.02em; border: 2px solid var(--color-cocoa); transition: background .2s, color .2s, transform .15s; }
-.btn-pill.solid { background: var(--color-cocoa); color: var(--color-cream); }
-.btn-pill.solid:hover { background: var(--color-pink-deep); border-color: var(--color-pink-deep); }
-.btn-pill.ghost:hover { background: var(--color-cocoa); color: var(--color-cream); }
-.btn-pill:active { transform: translateY(2px); }
+  .card-sticker { border: 4px solid var(--foreground); border-radius: 1.5rem; box-shadow: 4px 4px 0px 0px rgba(60, 42, 33, 1); background: var(--white); }
 
+  .content-wrapper { max-width: 1280px; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
+  @media (min-width: 1024px) { .content-wrapper { padding-left: 2rem; padding-right: 2rem; } }
 
-.input-sticker { font-family: var(--font-body); width: 100%; padding: 14px 18px; border: 2px solid rgba(74, 30, 27, .35); border-radius: 14px;
-  background: #fff; color: var(--color-cocoa); font-size: 1rem; outline: none; transition: border-color .15s, box-shadow .15s; }
-.input-sticker:focus { border-color: var(--color-cocoa); box-shadow: 0 0 0 4px var(--color-blush); }
+  /* ─── helpers used by the admin, cart summary and footer ─── */
+  .disp { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.01em; line-height: 0.95; }
+  .script { font-family: var(--font-script); }
+  .kicker { font: 600 12px/1.2 var(--font-body); letter-spacing: 0.18em; text-transform: uppercase; }
+  .btn-pill { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 999px; padding: 14px 26px;
+    font: 600 15px/1 var(--font-body); border: 4px solid var(--foreground); box-shadow: var(--shadow-sticker); transition: box-shadow .1s, transform .1s; }
+  .btn-pill.solid { background: var(--color-chocolate); color: #fff; }
+  .btn-pill.ghost { background: #fff; color: var(--color-chocolate); }
+  .btn-pill:hover { box-shadow: var(--shadow-sticker-hover); }
+  .btn-pill:active { transform: translate(4px, 4px); box-shadow: none; }
 
-
-
-/* ─── motion chrome ─── */
-.pt-curtain { position: fixed; inset: 0; z-index: 90; visibility: hidden; display: grid; place-items: center; pointer-events: none;
-  background: var(--color-pink); clip-path: inset(100% 0 0 0); }
-.pt-label { display: block; color: var(--color-cream); font-size: clamp(56px, 11vw, 170px); }
-
-.cursor { position: fixed; left: 0; top: 0; z-index: 100; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
-  background: var(--color-cocoa); pointer-events: none; opacity: 0; transition: width .3s cubic-bezier(.2,.8,.2,1), height .3s cubic-bezier(.2,.8,.2,1), margin .3s cubic-bezier(.2,.8,.2,1), opacity .2s, background .2s; }
-.cursor.is-on { opacity: 1; }
-.cursor.is-label { width: 22px; height: 22px; margin: -11px 0 0 -11px; background: var(--color-pink); }
-.cursor span { position: absolute; left: 50%; top: calc(100% + 10px); padding: 7px 12px; border-radius: 99px; background: var(--color-cocoa); color: var(--color-cream);
-  font: 600 12px/1 var(--font-body); white-space: nowrap; opacity: 0; transform: translate(-50%, -6px); transition: opacity .15s, transform .25s; }
-.cursor.is-label span { opacity: 1; transform: translate(-50%, 0); }
-@media (pointer: coarse) { .cursor { display: none; } }
-
-/* marquee */
-.marquee { overflow: hidden; white-space: nowrap; }
-.marquee-track { display: inline-flex; will-change: transform; }
-
-/* card stack: the card underneath darkens as the next one covers it (--stack-dim set by gsap) */
-.stack-card::before { content: ""; position: absolute; inset: 0; z-index: 4; border-radius: inherit; background: var(--color-ink); opacity: var(--stack-dim, 0); pointer-events: none; }
-
-/* doodles */
-.doodle { position: absolute; pointer-events: none; color: var(--color-cocoa); }
-.spin-slow { animation: spin 18s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* cart pill bounce */
-@keyframes bump { 0% { transform: scale(1); } 30% { transform: scale(1.25) rotate(-6deg); } 60% { transform: scale(.95); } 100% { transform: scale(1); } }
-.bump { animation: bump .5s cubic-bezier(.2,.8,.2,1); }
-
-/* hide-scrollbar row for phones */
-.swipe { overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-.swipe::-webkit-scrollbar { display: none; }
-.swipe > * { scroll-snap-align: start; }
-
+  /* ─── animations added to the original design ─── */
+  .mask { display: block; overflow: hidden; padding-bottom: 0.08em; }
+  .mask > .ln { display: block; will-change: transform; }
+  .pt-curtain { position: fixed; inset: 0; z-index: 90; visibility: hidden; display: grid; place-items: center; pointer-events: none;
+    background: var(--color-pastel-hotpink); clip-path: inset(100% 0 0 0); }
+  .pt-label { display: block; color: #fff; font-family: var(--font-chewy); font-size: clamp(56px, 11vw, 160px); text-shadow: 6px 6px 0 var(--color-chocolate); }
+  .float { animation: float 5s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -12px; } }
+  @keyframes bump { 0% { transform: scale(1); } 30% { transform: scale(1.2) rotate(-6deg); } 60% { transform: scale(.95); } 100% { transform: scale(1); } }
+  .bump { animation: bump .5s cubic-bezier(.2,.8,.2,1); }
+  .marquee { overflow: hidden; white-space: nowrap; }
+  .marquee-track { display: inline-flex; will-change: transform; }
 }
 
 @media (prefers-reduced-motion: reduce) {

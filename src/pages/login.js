@@ -69,6 +69,17 @@ export default function LoginPage() {
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
       </Head>
 
+      <nav className="flex justify-between items-center px-6 md:px-8 py-4 bg-white border-b-4 border-chocolate">
+        <Link href="/" className="font-chewy text-2xl text-pastel-hotpink">Crumb & Co.</Link>
+        <Link href="/">
+          <motion.button
+            whileTap={{ x: 4, y: 4 }}
+            className="px-5 py-2.5 rounded-full font-fredoka font-semibold border-4 border-chocolate text-chocolate bg-transparent shadow-sticker hover:shadow-sticker-hover active:shadow-sticker-pressed cursor-pointer transition-all"
+          >
+            HOME
+          </motion.button>
+        </Link>
+      </nav>
 
       <div className="max-w-md mx-auto py-16 md:py-20 px-6 text-center">
         <h1 className="font-chewy text-5xl mb-10">Log in</h1>

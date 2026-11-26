@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { readCart, writeCart } from '../lib/cart';
+import Navbar from '../components/Navbar';
 
 // same delivery area as the live checkout
 const governorates = ["6th of October City", "Sheikh Zayed City"];
@@ -66,6 +67,11 @@ export default function CartPage() {
     newCart.splice(index, 1);
     setCart(newCart);
     writeCart(newCart);
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    location.reload();
   }
 
   async function deleteAddress(e) {
@@ -185,6 +191,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-cream font-fredoka text-chocolate">
       <Head><title>Checkout - Crumb & Co.</title></Head>
+      <Navbar activePage="cart" cartCount={cart.length} user={user} onLogout={handleLogout} />
 
       <div className="max-w-6xl mx-auto px-5 lg:px-8 py-10 md:py-16 flex flex-col-reverse lg:flex-row gap-10 lg:gap-14 justify-center">
         <div className="flex-1 min-w-[300px] max-w-[600px]">

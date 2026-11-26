@@ -26,10 +26,12 @@ export default function CheckoutPage() {
         setError(null);
 
         try {
-            // 1. Save the order to Supabase
-            const { data, error: supabaseError } = await supabase
+            // 1. Save the order to Supabase. The id is made here because customers may not read orders back (RLS).
+            const orderId = crypto.randomUUID();
+            const { error: supabaseError } = await supabase
                 .from('orders')
                 .insert([{
+                    id: orderId,
                     customer_name: name,
                     customer_email: email,
                     customer_address: address,
@@ -37,9 +39,7 @@ export default function CheckoutPage() {
                     total_amount: total,
                     items: items,
                     status: 'pending'
-                }])
-                .select()
-                .single();
+                }]);
 
             if (supabaseError) throw supabaseError;
 
@@ -50,7 +50,7 @@ export default function CheckoutPage() {
                 body: JSON.stringify({
                     email,
                     name,
-                    orderId: data.id,
+                    orderId,
                     total,
                     items
                 })

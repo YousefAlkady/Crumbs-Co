@@ -48,10 +48,12 @@ export default function CheckoutPage() {
             const fullAddress = `${address.trim()}, ${city}, Egypt`;
             const orderNumber = "CRUMB-" + Math.floor(10000 + Math.random() * 90000);
 
-            // 1. Save the order to Supabase
-            const { data, error: supabaseError } = await supabase
+            // 1. Save the order to Supabase. The id is made here because customers may not read orders back (RLS).
+            const orderId = crypto.randomUUID();
+            const { error: supabaseError } = await supabase
                 .from('orders')
                 .insert([{
+                    id: orderId,
                     order_number: orderNumber,
                     customer_name: name,
                     customer_email: email,
@@ -61,9 +63,7 @@ export default function CheckoutPage() {
                     items: items,
                     status: 'pending',
                     additional_notes: additionalNotes.trim() || null
-                }])
-                .select()
-                .single();
+                }]);
 
             if (supabaseError) throw supabaseError;
 
@@ -74,7 +74,7 @@ export default function CheckoutPage() {
                     body: JSON.stringify({
                     email,
                     name,
-                    orderId: data.id,
+                    orderId,
                     orderNumber,
                     additional_notes: additionalNotes.trim() || null,
                     total: finalTotal,

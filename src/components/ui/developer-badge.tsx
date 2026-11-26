@@ -1,3 +1,4 @@
+"use client";
 import React, { MouseEvent, useEffect, useRef, useState } from "react";
 
 const identityMatrix =
@@ -141,6 +142,11 @@ export const DeveloperBadge = () => {
     });
   };
 
+  // clear pending hover timers if the footer unmounts mid-animation (page change)
+  useEffect(() => () => {
+    [enterTimeout, leaveTimeout1, leaveTimeout2, leaveTimeout3].forEach((t) => t.current && clearTimeout(t.current));
+  }, []);
+
   useEffect(() => {
     if (isTimeoutFinished) {
       setMatrix(currentMatrix);
@@ -160,7 +166,7 @@ export const DeveloperBadge = () => {
   return (
     <a
       ref={ref}
-      href="https://github.com/YousefAlkady"
+      href="https://yousef.unilinkcampus.com"
       target="_blank"
       rel="noopener noreferrer"
       className="block w-[200px] h-auto cursor-pointer"
@@ -185,8 +191,8 @@ export const DeveloperBadge = () => {
               <rect width="260" height="54" fill="white" rx="10" />
             </mask>
           </defs>
-          {/* Main Background color - Sleek dark blue to match footer, or keep gold #f3e3ac */}
-          <rect width="260" height="54" rx="10" fill="#00008B" />
+          {/* badge background: dark cocoa to sit on the footer */}
+          <rect width="260" height="54" rx="10" fill="#2E1210" />
           <rect x="4" y="4" width="252" height="46" rx="8" fill="transparent" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1" />
 
           <text fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="10" letterSpacing="0.1em" fontWeight="bold" fill="#ffffff" opacity="0.8" x="130" y="22" textAnchor="middle">
